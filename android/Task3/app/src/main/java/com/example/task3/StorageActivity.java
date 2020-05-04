@@ -25,6 +25,8 @@ import java.util.List;
 
 public class StorageActivity extends AppCompatActivity {
     public static final String OPEN_RESULT_STRING_EXTRA = "open result string extra";
+    public static final String OPEN_RESULT_STORAGE_EMPTY_EXTRA = "open result storage empty extra";
+    public static final int RESULT_STORAGE_EMPTY_CODE = 555;
 
     private RecyclerView filesRecyclerView;
     private ArrayList<String> files;
@@ -40,6 +42,9 @@ public class StorageActivity extends AppCompatActivity {
         filesRecyclerView = findViewById(R.id.filesRecyclerView);
         filesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         files = new ArrayList<>(Arrays.asList(getApplicationContext().fileList()));
+        if (files.size() == 0) {
+            finishWithStorageEmpty();
+        }
         adapter = new MyAdapter(files);
         filesRecyclerView.setAdapter(adapter);
     }
@@ -53,10 +58,7 @@ public class StorageActivity extends AppCompatActivity {
         int no = Integer.parseInt(noString);
 
         if (no < 1 || no > files.size()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.error_input);
-            builder.setNeutralButton(android.R.string.ok, null);
-            builder.create().show();
+            showErrorInputAlertDialog();
             return;
         }
 
@@ -75,11 +77,7 @@ public class StorageActivity extends AppCompatActivity {
             finish();
 
         } catch (IOException ex) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.io_error);
-            builder.setNeutralButton(android.R.string.ok, null);
-            builder.create().show();
-            return;
+            showErrorInputAlertDialog();
         }
     }
 
@@ -88,10 +86,7 @@ public class StorageActivity extends AppCompatActivity {
         int no = Integer.parseInt(noString);
 
         if (no < 1 || no > files.size()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.error_input);
-            builder.setNeutralButton(android.R.string.ok, null);
-            builder.create().show();
+            showErrorInputAlertDialog();
             return;
         }
 
@@ -99,6 +94,24 @@ public class StorageActivity extends AppCompatActivity {
         deleteFile(files.get(no));
         files.remove(no);
         adapter.notifyDataSetChanged();
+
+        if (files.size() == 0) {
+            finishWithStorageEmpty();
+        }
+    }
+
+    private void finishWithStorageEmpty() {
+        Intent intent = new Intent();
+        intent.putExtra(OPEN_RESULT_STORAGE_EMPTY_EXTRA, getString(R.string.storage_empty));
+        setResult(RESULT_STORAGE_EMPTY_CODE, intent);
+        finish();
+    }
+
+    private void showErrorInputAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.error_input);
+        builder.setNeutralButton(android.R.string.ok, null);
+        builder.create().show();
     }
 }
 
@@ -118,7 +131,7 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        holder.textView.setText((position + 1) + ": " +files.get(position));
+        holder.textView.setText((position + 1) + ": " + files.get(position));
     }
 
     @Override

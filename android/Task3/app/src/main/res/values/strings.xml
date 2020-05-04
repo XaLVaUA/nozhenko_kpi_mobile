@@ -25,4 +25,5 @@
     <string name="io_error">IO Error</string>
     <string name="saved">Saved</string>
     <string name="error_input">Error input</string>
+    <string name="storage_empty">Storage empty</string>
 </resources>

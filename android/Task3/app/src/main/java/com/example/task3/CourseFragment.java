@@ -1,7 +1,9 @@
 package com.example.task3;
 
+import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 public class CourseFragment extends Fragment {
+    private OnCourseCheckListener onCourseCheckListener;
     private View view;
     private RadioGroup courseRadioGroup;
     private boolean isCourseRadioGroupEnabled;
@@ -19,6 +22,11 @@ public class CourseFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_course, container, false);
         courseRadioGroup = view.findViewById(R.id.courseRadioGroup);
+        courseRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (onCourseCheckListener != null) {
+                onCourseCheckListener.onCourseCheck(group, checkedId);
+            }
+        });
         isCourseRadioGroupEnabled = true;
         return view;
     }
@@ -46,5 +54,18 @@ public class CourseFragment extends Fragment {
         }
 
         return view.findViewById(id);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        if (context instanceof OnCourseCheckListener) {
+            onCourseCheckListener = (OnCourseCheckListener) context;
+        }
+    }
+
+    interface OnCourseCheckListener {
+        void onCourseCheck(RadioGroup radioGroup, int checkedRadioButtonId);
     }
 }

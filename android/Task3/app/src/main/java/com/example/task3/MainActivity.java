@@ -18,7 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-public class MainActivity extends AppCompatActivity implements FacultyFragment.OnFacultyCheckListener {
+public class MainActivity extends AppCompatActivity implements FacultyFragment.OnFacultyCheckListener, CourseFragment.OnCourseCheckListener {
     private static final int OPEN_RESULT_REQUEST = 15;
 
     private FacultyFragment facultyFragment;
@@ -71,16 +71,17 @@ public class MainActivity extends AppCompatActivity implements FacultyFragment.O
 
         try (OutputStreamWriter osw = new OutputStreamWriter(openFileOutput(fileName, MODE_PRIVATE))) {
             osw.write(resultFragment.getResultText());
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(getString(R.string.saved) + " " + fileName);
-            builder.setNeutralButton(android.R.string.ok, null);
-            builder.create().show();
+            showDefaultAlertDialog(getString(R.string.saved) + " " + fileName, getString(android.R.string.ok));
         } catch (IOException ex) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.io_error);
-            builder.setNeutralButton(android.R.string.ok, null);
-            builder.create().show();
+            showDefaultAlertDialog(getString(R.string.io_error), getString(android.R.string.ok));
         }
+    }
+
+    private void showDefaultAlertDialog(String msg, String btn) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(msg);
+        builder.setNeutralButton(btn, null);
+        builder.create().show();
     }
 
     public void onOpenButtonClick(View view) {
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements FacultyFragment.O
     private void reset() {
         facultyFragment.clearFacultyRadioGroupCheck();
         courseFragment.clearCourseRadioGroupCheck();
+        fileNameEditText.setText("");
         fileNameEditText.setEnabled(false);
         saveButton.setEnabled(false);
         courseFragment.setRadioGroupEnabled(false);
@@ -107,16 +109,19 @@ public class MainActivity extends AppCompatActivity implements FacultyFragment.O
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == OPEN_RESULT_REQUEST) {
-            if (resultCode != RESULT_OK) {
-                return;
-            }
-
             if (data == null) {
                 return;
             }
 
-            String resultString = data.getStringExtra(StorageActivity.OPEN_RESULT_STRING_EXTRA);
-            resultFragment.setResultText(resultString);
+            if (resultCode == RESULT_OK) {
+                String resultString = data.getStringExtra(StorageActivity.OPEN_RESULT_STRING_EXTRA);
+                resultFragment.setResultText(resultString);
+            }
+
+            if (resultCode == StorageActivity.RESULT_STORAGE_EMPTY_CODE) {
+                String resultString = data.getStringExtra(StorageActivity.OPEN_RESULT_STORAGE_EMPTY_EXTRA);
+                showDefaultAlertDialog(resultString, getString(android.R.string.ok));
+            }
         }
     }
 
@@ -127,5 +132,13 @@ public class MainActivity extends AppCompatActivity implements FacultyFragment.O
         }
 
         courseFragment.setRadioGroupEnabled(true);
+        fileNameEditText.setEnabled(false);
+        saveButton.setEnabled(false);
+    }
+
+    @Override
+    public void onCourseCheck(RadioGroup radioGroup, int checkedRadioButtonId) {
+        fileNameEditText.setEnabled(false);
+        saveButton.setEnabled(false);
     }
 }
